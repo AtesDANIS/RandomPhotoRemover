@@ -20,7 +20,10 @@ import {
   Image,
   useWindowDimensions,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
+
+import CameraRoll from "@react-native-community/cameraroll";
 
 
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -29,116 +32,98 @@ var RNFS = require('react-native-fs');
 
 
 
-
-
-
-
 const App: () => Node = () => {
-  const [fileUri, setFileUri] = useState('/assets/galeryImages.jpg');
-  const [imageRatio, setImageRatio] = useState(1);
-  const windowWidth = useWindowDimensions().width;
-  const windowHeight = useWindowDimensions().height;
+  const [loading, setLoading] = useState(true);
+  const [img, setImg] = useState('{"uri": "/assets/galeryImages.jpg"}');
+  const defaultUri = "/assets/galeryImages.jpg";
+  // const windowWidth = useWindowDimensions().width;
+  // const windowHeight = useWindowDimensions().height;
 
-  function renderFileUri() {
-    // console.log(fileUri)
-    return <Image
-      source={{ uri: fileUri }}
-      style={{
-        width: '90%',
-        height: windowWidth / imageRatio * 90 / 100
-      }}
-    // style={styles.images}
-    />
+  const [images, setImages] = useState({});
+  const [totalPics, setTotalPics] = useState(0);
+
+
+
+
+
+
+  getRandomImage = async () => {
+    let random = Math.floor(Math.random() * images.length)
+    setImg(images[random]);
+    console.log("collectionsize", images.length);
+    console.log("random", random);
+    console.log(images[random]);
   }
 
-  function deleteFile() {
-    Alert.alert(
-      "Your image will be deleted!",
-      "Are you sure?",
-      [
-        {
-          text: "Cancel",
-          // onPress: () => console.log("Cancel Pressed"),
-          style: "cancel"
-        },
-        {
-          style: "destructive",
-          text: "Delete",
-          onPress: () => {
-            let fileUriBackup = fileUri;
+  getAllPhotos = async () => {
 
-            RNFS.exists(fileUriBackup)
-              .then((result) => {
-                console.log("file exists: ", result);
+    // const albums = await CameraRoll.getAlbums({ assetType: 'Photos', albumType: 'All' });
+    // let count = albums.reduce((total, current) => total + current.count, 0);
+    // setTotalPics(count);
 
-                // console.log("once ",fileUriBackup);
-                // setFileUri("/assets/galeryImages.jpg");
-                // console.log("sonra ",fileUriBackup);
+    const fetchParams = {
+      first: 10000000,
+      assetType: 'Photos',
+    }
 
-                RNFS.unlink(fileUriBackup).then(() => {
-
-                  console.log('FILE DELETED');
-
-                  RNFS.exists(fileUriBackup)
-                    .then((result) => {
-                      console.log("double checked: ", result);
-                    });
-
-                }).catch((err) => {
-                  console.log(err.message);
-                });
-              })
-          }
-
-        }
-      ]
-    )
+    CameraRoll.getPhotos(fetchParams)
+      .then(data => {
+        const assets = data.edges
+        setImages(assets.map((asset) => asset.node.image))
+        setLoading(false);
+      })
+      .catch(err => console.log)
   }
 
 
-  function getPhoto() {
-    launchImageLibrary({}, (response) => {
-      if (response.didCancel) {
-        // user cancel image selection
-      } else if (response.error) {
-        // error
-      } else {
-        console.log(response);
-        setImageRatio(response.assets[0].width / response.assets[0].height)
-        setFileUri(response.assets[0].uri);
-      }
-    });
-  }
+
+
+
 
   // useEffect(() => {
-  //   getPhoto();
-  // }, []);
+  //   // getAllPhotos();
+  //   console.log("totalPics  ", totalPics);
+  // }, [totalPics]);
+
+
+  useLayoutEffect(() => {
+    getAllPhotos();
+  });
+
+
+
 
   return (
     <SafeAreaView >
-      <View style={{ marginTop: 50 }}>
-        <View style={{
-          flexDirection: 'row', justifyContent: 'space-between'
-        }}>
-          <Button title='Fetch another' onPress={() => getPhoto()} ></Button>
-          <Button title='Delete' onPress={() => deleteFile()} ></Button>
+      {loading ?
+        <View>
+          <ActivityIndicator></ActivityIndicator>
+          <Text>Your images are getting ready!</Text>
         </View>
-        <View style={{ alignItems: 'center' }}>
-          {renderFileUri()}
+        :
+        <View style={styles.container}>
+          <Image
+            style={styles.image}
+            source={{ uri: img ? img.uri : defaultUri}}
+          />
+          <Button title="Get Random Image from CameraRoll" onPress={() => getRandomImage()} />
         </View>
-      </View>
+      }
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  images: {
-    width: '100%',
-    height: '100%'
-    // height: useWindowDimensions().width,
-    // resizeMode: 'cover',
+  container: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5FCFF',
   },
-
+  image: {
+    width: '100%',
+    height: '75%',
+    margin: 10,
+  }
 });
 
 export default App;

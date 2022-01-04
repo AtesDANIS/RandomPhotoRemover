@@ -14,6 +14,8 @@ target 'RandomPhotoRemover' do
 
   # pod 'RNFS', :path => '../node_modules/react-native-fs'
 
+  pod 'react-native-cameraroll', :path => '../node_modules/@react-native-community/cameraroll'
+
   target 'RandomPhotoRemoverTests' do
     inherit! :complete
     # Pods for testing
