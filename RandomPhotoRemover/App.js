@@ -19,10 +19,12 @@ import {
   Button,
   Image,
   useWindowDimensions,
+  Alert,
 } from 'react-native';
 
 
 import { launchImageLibrary } from 'react-native-image-picker';
+var RNFS = require('react-native-fs');
 
 
 
@@ -49,6 +51,51 @@ const App: () => Node = () => {
     />
   }
 
+  function deleteFile() {
+    Alert.alert(
+      "Your image will be deleted!",
+      "Are you sure?",
+      [
+        {
+          text: "Cancel",
+          // onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        {
+          style: "destructive",
+          text: "Delete",
+          onPress: () => {
+            let fileUriBackup = fileUri;
+
+            RNFS.exists(fileUriBackup)
+              .then((result) => {
+                console.log("file exists: ", result);
+
+                // console.log("once ",fileUriBackup);
+                // setFileUri("/assets/galeryImages.jpg");
+                // console.log("sonra ",fileUriBackup);
+
+                RNFS.unlink(fileUriBackup).then(() => {
+
+                  console.log('FILE DELETED');
+
+                  RNFS.exists(fileUriBackup)
+                    .then((result) => {
+                      console.log("double checked: ", result);
+                    });
+
+                }).catch((err) => {
+                  console.log(err.message);
+                });
+              })
+          }
+
+        }
+      ]
+    )
+  }
+
+
   function getPhoto() {
     launchImageLibrary({}, (response) => {
       if (response.didCancel) {
@@ -57,7 +104,7 @@ const App: () => Node = () => {
         // error
       } else {
         console.log(response);
-        setImageRatio(response.assets[0].width / response.assets[0].height )
+        setImageRatio(response.assets[0].width / response.assets[0].height)
         setFileUri(response.assets[0].uri);
       }
     });
@@ -69,9 +116,14 @@ const App: () => Node = () => {
 
   return (
     <SafeAreaView >
-      <View style={{ marginTop:50 }}>
-        <Button title='Fetch another' onPress={() => getPhoto()} ></Button>
-        <View style={{alignItems:'center'}}>
+      <View style={{ marginTop: 50 }}>
+        <View style={{
+          flexDirection: 'row', justifyContent: 'space-between'
+        }}>
+          <Button title='Fetch another' onPress={() => getPhoto()} ></Button>
+          <Button title='Delete' onPress={() => deleteFile()} ></Button>
+        </View>
+        <View style={{ alignItems: 'center' }}>
           {renderFileUri()}
         </View>
       </View>
