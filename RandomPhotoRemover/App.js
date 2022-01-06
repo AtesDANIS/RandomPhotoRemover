@@ -29,6 +29,7 @@ import CameraRoll from "@react-native-community/cameraroll";
 import { launchImageLibrary } from 'react-native-image-picker';
 var RNFS = require('react-native-fs');
 
+var hasNextPage = true;
 
 
 
@@ -61,43 +62,11 @@ const App: () => Node = () => {
 
     isPhotoInPortraitMode = true;
 
-    // if (img.width > img.height) {
-    //   isPhotoInPortraitMode = false;
-    // }
-
-
-    // console.log("isPhotoInPortraitMode",isPhotoInPortraitMode);
-
-    // if (isPhotoInPortraitMode) {
-    //   console.log("img.width", img.width);
-    //   console.log("img.height", img.height);
-    //   console.log("windowWidth", windowWidth);
-    //   console.log("windowHeight", windowHeight);
-
-
-    //   // console.log(img.width / (img.height / windowHeight / 2));
-
-    //   // console.log(img.width / (img.height / windowHeight / 2));
-    //   img.width = img.width / (img.height / windowHeight / 2);
-    //   img.height = windowHeight / 2;
-    // }
-    // else {
-    //   // img.width = windowWidth / 5;
-    //   // img.height = img.height / (img.width / windowWidth / 5);
-    // }
-
+    
 
     let imageRatio = img.width / img.height
-    // if (imageRatio > 1) {
-    //   console.log("viewscene");
-    //   img.width = windowWidth / 1.5;
-    //   img.height = img.width / imageRatio;
-    // }
-    // else {
-    //   console.log("portrait");
-    //   img.height = windowHeight / 1.5;
-    //   img.width = img.height * imageRatio;
-    // }
+
+    
 
 
     if (imageRatio > displayRatio) {
@@ -116,50 +85,75 @@ const App: () => Node = () => {
 
   deleteImage = async () => {
     CameraRoll.deletePhotos([img.uri])
-    .then((data) => {
-      console.log('data', data);
-      setImages(images.filter(s => s != img));
-      console.log(images.length);
-      getRandomImage();
+      .then((data) => {
+        console.log('data', data);
+        setImages(images.filter(s => s != img));
+        console.log(images.length);
+        getRandomImage();
 
-    })
-    .catch((error) => {
-      console.log("rejected ",error.message);
-      // alert(error.message);
-    })
-    
-    ;
+      })
+      .catch((error) => {
+        console.log("rejected ", error.message);
+        // alert(error.message);
+      })
+
+      ;
 
   }
 
 
 
-  getAllPhotos = async () => {
 
-    const fetchParams = {
-      first: 100000,
+
+  getAllPhotos = () => {
+
+    let fetchParams = {
+      first: 10000000000,
       assetType: 'Photos',
     }
 
+    if (images.length > 0) {
+      // first: 100000000,
+      fetchParams.after = images[images.length - 1].uri
+    }
+
+
+
     CameraRoll.getPhotos(fetchParams)
-      .then(data => {
-        const assets = data.edges;
-        setImages(assets.map((asset) => asset.node.image));
-        getRandomImage();
-        setLoading(false);
+      .then(({ edges, page_info }) => {
+        debugger;
+        // hasNextPage = page_info.has_next_page;
+
+        let response = [];
+        response = edges.map((edge) => edge.node.image)
+
+        if (images.length > 0) {
+          setImages(images.concat(response));
+        }
+        else {
+          setImages(response);
+          getRandomImage();
+          setLoading(false);
+        }
+
       })
-      .catch(err => console.log)
+
+
   }
 
 
+
+
   useEffect(() => {
-    getAllPhotos();
-  }, []);
+
+    if (hasNextPage) {
+      getAllPhotos();
+    }
 
 
-  // useLayoutEffect(() => {
-  //   getAllPhotos();
-  // });
+  }, [images]);
+
+
 
 
 
@@ -173,6 +167,7 @@ const App: () => Node = () => {
         </View>
         :
         <View style={[styles.container, { height: windowHeight / 2 }]}>
+          <Text style={{ color: 'white' }}>{images.length} photos found</Text>
           <Image
             style={{ width: img.width, height: img.height }}
             // style={{ width: (img.width / (img.height / windowHeight / 2)), height: windowHeight / 2 }}
@@ -206,3 +201,97 @@ const styles = StyleSheet.create({
 });
 
 export default App;
+
+
+
+
+
+
+
+// useLayoutEffect(() => {
+//   getAllPhotos();
+// });
+
+// getAllPhotos = () => {
+
+//   let fetchParams = {
+//     first: 2,
+//     assetType: 'Photos',
+//   }
+//   debugger;
+//   if (images.length > 0) {
+//     fetchParams.after = images[images.length - 1].uri
+//   }
+
+//   CameraRoll.getPhotos(fetchParams)
+//     .then(data => {
+//       const assets = data.edges;
+//       debugger;
+
+//       console.log("response : ", assets.length);
+//       console.log("total: ", images.length);
+
+
+//       if (assets.length > 0) {
+
+//         if (images.length > 0) {
+//           setImages(...images, assets.map((asset) => asset.node.image));
+//         }
+//         else {
+//           setImages(assets.map((asset) => asset.node.image));
+//         }
+
+//         getAllPhotos();
+//       }
+
+//       // getRandomImage();
+//       setLoading(false);
+//     })
+//     .catch(err => console.log)
+// }
+
+
+
+
+
+
+
+
+
+
+// if (img.width > img.height) {
+    //   isPhotoInPortraitMode = false;
+    // }
+
+
+    // console.log("isPhotoInPortraitMode",isPhotoInPortraitMode);
+
+    // if (isPhotoInPortraitMode) {
+    //   console.log("img.width", img.width);
+    //   console.log("img.height", img.height);
+    //   console.log("windowWidth", windowWidth);
+    //   console.log("windowHeight", windowHeight);
+
+
+    //   // console.log(img.width / (img.height / windowHeight / 2));
+
+    //   // console.log(img.width / (img.height / windowHeight / 2));
+    //   img.width = img.width / (img.height / windowHeight / 2);
+    //   img.height = windowHeight / 2;
+    // }
+    // else {
+    //   // img.width = windowWidth / 5;
+    //   // img.height = img.height / (img.width / windowWidth / 5);
+    // }
+
+    
+    // if (imageRatio > 1) {
+    //   console.log("viewscene");
+    //   img.width = windowWidth / 1.5;
+    //   img.height = img.width / imageRatio;
+    // }
+    // else {
+    //   console.log("portrait");
+    //   img.height = windowHeight / 1.5;
+    //   img.width = img.height * imageRatio;
+    // }
