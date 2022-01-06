@@ -21,8 +21,8 @@
                                 <rect key="frame" x="133" y="584" width="108" height="63"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="512" translatesAutoresizingMaskIntoConstraints="NO" id="AtA-s0-s6y">
-                                <rect key="frame" x="45" y="130" width="285" height="222"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="PhotoCleaner" translatesAutoresizingMaskIntoConstraints="NO" id="tMb-sk-Uyr">
+                                <rect key="frame" x="51" y="82" width="273" height="291"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
                         </subviews>
@@ -36,7 +36,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="512" width="512" height="512"/>
+        <image name="PhotoCleaner" width="1920" height="1920"/>
         <image name="los3beyazbg2-300x132" width="300" height="132"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>

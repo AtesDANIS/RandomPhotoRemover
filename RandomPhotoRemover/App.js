@@ -29,11 +29,10 @@ import CameraRoll from "@react-native-community/cameraroll";
 import { launchImageLibrary } from 'react-native-image-picker';
 var RNFS = require('react-native-fs');
 
-var hasNextPage = true;
-
 
 
 const App: () => Node = () => {
+  const colorScheme = useColorScheme();
   const [loading, setLoading] = useState(true);
   const [img, setImg] = useState('{"uri": "/assets/galeryImages.jpg","width":1000,"height":1000}');
   const defaultUri = "/assets/galeryImages.jpg";
@@ -41,13 +40,12 @@ const App: () => Node = () => {
   const windowHeight = useWindowDimensions().height;
   const displayRatio = windowWidth / windowHeight;
 
-  const [images, setImages] = useState([]);
-  const [totalPics, setTotalPics] = useState(0);
+  const [images, setImages] = useState({});
 
-
-
-
-
+  let styles = darkThemeStyles;
+  if (colorScheme === 'light') {
+    styles = lightThemeStyles;
+  }
 
   getRandomImage = async () => {
 
@@ -62,11 +60,11 @@ const App: () => Node = () => {
 
     isPhotoInPortraitMode = true;
 
-    
+
 
     let imageRatio = img.width / img.height
 
-    
+
 
 
     if (imageRatio > displayRatio) {
@@ -90,71 +88,26 @@ const App: () => Node = () => {
         setImages(images.filter(s => s != img));
         console.log(images.length);
         getRandomImage();
-
       })
       .catch((error) => {
         console.log("rejected ", error.message);
-        // alert(error.message);
-      })
-
-      ;
-
+      });
   }
-
-
-
 
 
   getAllPhotos = () => {
-
-    let fetchParams = {
-      first: 10000000000,
-      assetType: 'Photos',
-    }
-
-    if (images.length > 0) {
-      // first: 100000000,
-      fetchParams.after = images[images.length - 1].uri
-    }
-
-
-
-    CameraRoll.getPhotos(fetchParams)
-      .then(({ edges, page_info }) => {
-        debugger;
-        // hasNextPage = page_info.has_next_page;
-
-        let response = [];
-        response = edges.map((edge) => edge.node.image)
-
-        if (images.length > 0) {
-          setImages(images.concat(response));
-        }
-        else {
-          setImages(response);
-          getRandomImage();
-          setLoading(false);
-        }
-
+    CameraRoll.getPhotos({ first: 10000000000, assetType: 'Photos' })
+      .then(({ edges }) => {
+        setImages(edges.map((edge) => edge.node.image));
+        getRandomImage();
+        setLoading(false);
       })
-
-
   }
 
 
-
-
   useEffect(() => {
-
-    if (hasNextPage) {
-      getAllPhotos();
-    }
-
-
-  }, [images]);
-
-
-
+    getAllPhotos();
+  }, []);
 
 
 
@@ -163,11 +116,11 @@ const App: () => Node = () => {
       {loading ?
         <View style={[styles.container, { height: windowHeight / 2 }]}>
           <ActivityIndicator></ActivityIndicator>
-          <Text style={{ color: 'white' }}>Your images are getting ready!</Text>
+          <Text style={styles.loadingText}>Your photos are getting ready!</Text>
         </View>
         :
         <View style={[styles.container, { height: windowHeight / 2 }]}>
-          <Text style={{ color: 'white' }}>{images.length} photos found</Text>
+          <Text style={styles.foundCount}>{images.length} photos found</Text>
           <Image
             style={{ width: img.width, height: img.height }}
             // style={{ width: (img.width / (img.height / windowHeight / 2)), height: windowHeight / 2 }}
@@ -185,7 +138,11 @@ const App: () => Node = () => {
   );
 };
 
-const styles = StyleSheet.create({
+
+
+
+
+const darkThemeStyles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -197,8 +154,39 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '50%',
     margin: 10,
+  },
+  loadingText: {
+    color: 'white'
+  },
+  foundCount: {
+    color: 'white'
   }
 });
+
+const lightThemeStyles = StyleSheet.create({
+  container: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    flex: 1,
+    width: '100%',
+  },
+  image: {
+    width: '100%',
+    height: '50%',
+    margin: 10,
+  },
+  loadingText: {
+    color: 'black'
+  },
+  foundCount:{
+    color: 'black'
+  }
+});
+
+
+
+
 
 export default App;
 
@@ -207,91 +195,3 @@ export default App;
 
 
 
-
-// useLayoutEffect(() => {
-//   getAllPhotos();
-// });
-
-// getAllPhotos = () => {
-
-//   let fetchParams = {
-//     first: 2,
-//     assetType: 'Photos',
-//   }
-//   debugger;
-//   if (images.length > 0) {
-//     fetchParams.after = images[images.length - 1].uri
-//   }
-
-//   CameraRoll.getPhotos(fetchParams)
-//     .then(data => {
-//       const assets = data.edges;
-//       debugger;
-
-//       console.log("response : ", assets.length);
-//       console.log("total: ", images.length);
-
-
-//       if (assets.length > 0) {
-
-//         if (images.length > 0) {
-//           setImages(...images, assets.map((asset) => asset.node.image));
-//         }
-//         else {
-//           setImages(assets.map((asset) => asset.node.image));
-//         }
-
-//         getAllPhotos();
-//       }
-
-//       // getRandomImage();
-//       setLoading(false);
-//     })
-//     .catch(err => console.log)
-// }
-
-
-
-
-
-
-
-
-
-
-// if (img.width > img.height) {
-    //   isPhotoInPortraitMode = false;
-    // }
-
-
-    // console.log("isPhotoInPortraitMode",isPhotoInPortraitMode);
-
-    // if (isPhotoInPortraitMode) {
-    //   console.log("img.width", img.width);
-    //   console.log("img.height", img.height);
-    //   console.log("windowWidth", windowWidth);
-    //   console.log("windowHeight", windowHeight);
-
-
-    //   // console.log(img.width / (img.height / windowHeight / 2));
-
-    //   // console.log(img.width / (img.height / windowHeight / 2));
-    //   img.width = img.width / (img.height / windowHeight / 2);
-    //   img.height = windowHeight / 2;
-    // }
-    // else {
-    //   // img.width = windowWidth / 5;
-    //   // img.height = img.height / (img.width / windowWidth / 5);
-    // }
-
-    
-    // if (imageRatio > 1) {
-    //   console.log("viewscene");
-    //   img.width = windowWidth / 1.5;
-    //   img.height = img.width / imageRatio;
-    // }
-    // else {
-    //   console.log("portrait");
-    //   img.height = windowHeight / 1.5;
-    //   img.width = img.height * imageRatio;
-    // }
