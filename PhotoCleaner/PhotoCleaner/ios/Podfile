@@ -12,7 +12,6 @@ target 'RandomPhotoRemover' do
     :hermes_enabled => false
   )
 
-  # pod 'RNFS', :path => '../node_modules/react-native-fs'
 
   pod 'react-native-cameraroll', :path => '../node_modules/@react-native-community/cameraroll'
 

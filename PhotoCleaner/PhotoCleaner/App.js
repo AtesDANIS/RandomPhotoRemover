@@ -22,14 +22,45 @@ import {
   Alert,
   ActivityIndicator,
   Pressable,
+  PermissionsAndroid,
+  Platform,
 } from 'react-native';
 
-import CameraRoll, { deletePhotos } from "@react-native-community/cameraroll";
+import CameraRoll, { deletePhotos, getPhotos } from "@react-native-community/cameraroll";
 
 import RNShake from 'react-native-shake';
 
 import { launchImageLibrary } from 'react-native-image-picker';
-var RNFS = require('react-native-fs');
+
+
+const requestCameraPermission = async () => {
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+      {
+        title: "Photo Cleaner External Storage Permission",
+        message:
+          "Photo Cleaner needs access to external storage " +
+          "so you can clean them too.",
+        buttonNeutral: "Ask Me Later",
+        buttonNegative: "Cancel",
+        buttonPositive: "OK"
+      }
+    );
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      console.log("You can use the external storage");
+      getAllPhotos();
+    } else {
+      console.log("External storage permission denied");
+    }
+  } catch (err) {
+    console.warn(err);
+  }
+
+};
+
+
+
 
 
 
@@ -44,6 +75,7 @@ const App: () => Node = () => {
   const displayRatio = windowWidth / windowHeight;
 
   const [images, setImages] = useState({});
+
 
   let styles = darkThemeStyles;
   if (colorScheme === 'light') {
@@ -60,15 +92,22 @@ const App: () => Node = () => {
     random = Math.floor(Math.random() * images.length)
     // }
 
+    // console.log(random);
     let img = images[random];
+
+
+    if (Platform.OS === 'android') {
+      await Image.getSize(img.uri, (width, height) => {
+        img.width = width;
+        img.height = height;
+      });
+
+    }
 
 
 
 
     let imageRatio = img.width / img.height
-
-
-
 
     if (imageRatio > displayRatio) {
       img.width = windowWidth * 90 / 100;
@@ -79,10 +118,16 @@ const App: () => Node = () => {
       img.width = img.height * imageRatio;
     }
 
-
     setImg(img);
     setRandomLoading(false);
 
+  }
+
+  getRandomImageAndroidExtended = (width, height) => {
+    // console.log(width, height);
+    // setAndroidImageHeight(height);
+    // setAndroidImageWidth(width);
+    return [width, height];
   }
 
   deleteImage = async () => {
@@ -106,7 +151,7 @@ const App: () => Node = () => {
   getAllPhotos = () => {
 
     let getCount = 100000000
-
+    // debugger;
 
     if (__DEV__) {
       getCount = 10
@@ -114,23 +159,24 @@ const App: () => Node = () => {
 
     CameraRoll.getPhotos({ first: getCount, assetType: 'Photos' })
       .then(({ edges }) => {
+        // debugger;
+        // if (__DEV__) {
+        //   edges = edges.concat(edges);
+        //   edges = edges.concat(edges);
+        //   edges = edges.concat(edges);
+        //   edges = edges.concat(edges);
+        //   edges = edges.concat(edges);
+        //   edges = edges.concat(edges);
+        //   edges = edges.concat(edges);
+        //   edges = edges.concat(edges);
+        //   edges = edges.concat(edges);
+        //   edges = edges.concat(edges);
+        //   edges = edges.concat(edges);
+        //   edges = edges.concat(edges);
+        //   edges = edges.concat(edges);
+        // }
 
-        if (__DEV__) {
-          edges = edges.concat(edges);
-          edges = edges.concat(edges);
-          edges = edges.concat(edges);
-          edges = edges.concat(edges);
-          edges = edges.concat(edges);
-          edges = edges.concat(edges);
-          edges = edges.concat(edges);
-          edges = edges.concat(edges);
-          edges = edges.concat(edges);
-          edges = edges.concat(edges);
-          edges = edges.concat(edges);
-          edges = edges.concat(edges);
-          edges = edges.concat(edges);
-        }
-
+        // debugger;
 
         setImages(edges.map((edge) => edge.node.image));
         getRandomImage();
@@ -140,7 +186,14 @@ const App: () => Node = () => {
 
 
   useEffect(() => {
-    getAllPhotos();
+    // debugger;
+    if (Platform.OS === 'android') {
+      requestCameraPermission();
+    }
+    else {
+      getAllPhotos();
+    }
+
 
     const subscription = RNShake.addListener(() => {
       deleteImage();
@@ -196,7 +249,7 @@ const App: () => Node = () => {
 
         </View>
       }
-    </SafeAreaView >
+    </SafeAreaView>
   );
 };
 
