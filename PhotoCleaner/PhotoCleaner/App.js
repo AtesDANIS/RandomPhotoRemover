@@ -134,17 +134,35 @@ const App: () => Node = () => {
 
     if (images.length > 0) {
 
-      CameraRoll.deletePhotos([img.uri])
-        .then((data) => {
-          console.log('data', data);
-          setImages(images.filter(s => s != img));
-          console.log(images.length);
-          getRandomImage();
-        })
-        .catch((error) => {
-          console.log("rejected ", error.message);
-        });
+      if (Platform.OS === "android") {
+        Alert.alert(
+          "Confirm",
+          "Are you sure want to delete this photo?",
+          [
+            { text: "Cancel", onPress: () => console.log("Cancel Pressed"), style: "cancel" },
+            { text: "OK", onPress: () => doDelete() }
+          ]
+        );
+      }
+      else {
+        //ios
+        doDelete();
+      }
+
     }
+  }
+
+  doDelete = () => {
+    CameraRoll.deletePhotos([img.uri])
+      .then((data) => {
+        console.log('data', data);
+        setImages(images.filter(s => s != img));
+        console.log(images.length);
+        getRandomImage();
+      })
+      .catch((error) => {
+        console.log("rejected ", error.message);
+      });
   }
 
 
@@ -264,6 +282,7 @@ const darkThemeStyles = StyleSheet.create({
     backgroundColor: 'black',
     flex: 1,
     width: '100%',
+    marginTop: 5,
   },
   image: {
     width: '100%',
@@ -295,6 +314,8 @@ const lightThemeStyles = StyleSheet.create({
     backgroundColor: 'white',
     flex: 1,
     width: '100%',
+    marginTop: 5,
+
   },
   image: {
     width: '100%',
@@ -324,9 +345,3 @@ const lightThemeStyles = StyleSheet.create({
 
 
 export default App;
-
-
-
-
-
-
